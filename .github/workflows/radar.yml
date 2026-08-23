@@ -24,5 +24,13 @@ jobs:
       - name: Radar draaien
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CH
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python radar.py
 
+      - name: Geheugen opslaan
+        run: |
+          git config user.name "dropradar-bot"
+          git config user.email "actions@github.com"
+          git add seen.json
+          git diff --staged --quiet || git commit -m "radar: geheugen bijgewerkt"
+          git push
