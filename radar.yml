@@ -1,0 +1,38 @@
+name: DropRadar
+
+on:
+  schedule:
+    # Elke 30 minuten. GitHub voert cron uit met vertraging (soms 5-20 min);
+    # voor aankondigingen maakt dat niets uit.
+    - cron: "*/30 * * * *"
+  workflow_dispatch: # zodat je hem handmatig kunt starten vanuit de Actions-tab
+
+permissions:
+  contents: write # nodig om seen.json terug te committen
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dependencies installeren
+        run: pip install -r requirements.txt
+
+      - name: Radar draaien
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python radar.py
+
+      - name: Geheugen opslaan
+        run: |
+          git config user.name "dropradar-bot"
+          git config user.email "actions@github.com"
+          git add seen.json
+          git diff --staged --quiet || git commit -m "radar: geheugen bijgewerkt"
+          git push
